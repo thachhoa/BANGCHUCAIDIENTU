@@ -1,0 +1,6 @@
+{
+  "name": "Bé Học Vui - Bảng Chữ Cái Tiếng Việt",
+  "description": "Ứng dụng tương tác giúp trẻ học 29 chữ cái Tiếng Việt sinh động qua âm thanh, hình ảnh minh họa, hướng dẫn tập viết nét vẽ tay chuẩn sư phạm và trò chơi đố vui tương tác AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
