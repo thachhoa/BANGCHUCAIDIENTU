@@ -116,7 +116,7 @@ export const BlackboardTracing: React.FC<BlackboardTracingProps> = ({ letter }) 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.lineWidth = 14;
+    ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     
