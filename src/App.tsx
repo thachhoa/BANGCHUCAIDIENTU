@@ -65,7 +65,7 @@ export default function App() {
   const selectAndPronounce = (letter: LetterData) => {
     sound.playPop();
     setSelectedLetter(letter);
-    sound.speakVietnamese(letter.pronunciation);
+    sound.speakLetter(letter);
 
     // Save viewed letter progress to localStorage
     try {
