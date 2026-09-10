@@ -14,9 +14,11 @@ export interface LetterData {
   tracingPoints: string[]; // SVG path coordinates or guides for simulated drawing tracing
 }
 
+export type GameMode = 'LETTERS' | 'SYLLABLES' | 'MIXED';
+
 export interface QuizQuestion {
   id: string;
-  type: 'FIND_IMAGE' | 'FIND_LETTER' | 'LISTEN_FIND' | 'SPELL_WORD';
+  type: 'FIND_IMAGE' | 'FIND_LETTER' | 'LISTEN_FIND' | 'SPELL_WORD' | 'COMBINE_SOUNDS' | 'FIND_SYLLABLE';
   questionText: string;
   audioText: string;       // TTS text
   correctAnswer: string;   // Letter or word depending on type
