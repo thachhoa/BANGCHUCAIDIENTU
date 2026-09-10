@@ -108,7 +108,42 @@ class AudioSynthesizer {
     osc.stop(startTime + duration + 0.05);
   }
 
-  // Speak a text using browser Speech Synthesis in Vietnamese
+  private preferredVoice: SpeechSynthesisVoice | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      this.initVoice();
+      window.speechSynthesis.onvoiceschanged = () => {
+        this.initVoice();
+      };
+    }
+  }
+
+  private initVoice() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return;
+
+    // Prioritize standard Vietnamese voices
+    const viVoices = voices.filter(v => 
+      v.lang.toLowerCase().includes('vi') || 
+      v.name.toLowerCase().includes('vietnam') || 
+      v.name.toLowerCase().includes('tiếng việt')
+    );
+
+    if (viVoices.length > 0) {
+      // Prefer Google or Microsoft Natural female voices if present
+      const best = viVoices.find(v => 
+        v.name.includes('Google') || 
+        v.name.includes('Natural') || 
+        v.name.includes('An') || 
+        v.name.includes('Hoai')
+      );
+      this.preferredVoice = best || viVoices[0];
+    }
+  }
+
+  // Speak a text using browser Speech Synthesis in Vietnamese with maximum volume & clarity
   speakVietnamese(text: string, onStart?: () => void, onEnd?: () => void) {
     try {
       if (!('speechSynthesis' in window)) {
@@ -119,16 +154,29 @@ class AudioSynthesizer {
       // Cancel current speaking
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'vi-VN';
-      utterance.rate = 0.85; // slightly slower, clear for kids
-      utterance.pitch = 1.1; // a bit higher and friendlier for kids
+      // Ensure voice is populated
+      if (!this.preferredVoice) {
+        this.initVoice();
+      }
 
-      // Try to find standard Vietnamese voice if available
-      const voices = window.speechSynthesis.getVoices();
-      const viVoice = voices.find(v => v.lang.includes('vi') || v.lang.includes('VI'));
-      if (viVoice) {
-        utterance.voice = viVoice;
+      // If text is extremely short (single word/letter sound), expand slightly for TTS clarity
+      let cleanText = text.trim();
+      if (cleanText.length <= 2 && !cleanText.includes(' ')) {
+        cleanText = `Âm ${cleanText}.`;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'vi-VN';
+      utterance.volume = 1.0; // Maximum volume
+      utterance.rate = 0.88;  // Clear pace for kids
+      utterance.pitch = 1.0; // Natural pitch
+
+      if (this.preferredVoice) {
+        utterance.voice = this.preferredVoice;
+      } else {
+        const voices = window.speechSynthesis.getVoices();
+        const viVoice = voices.find(v => v.lang.toLowerCase().includes('vi'));
+        if (viVoice) utterance.voice = viVoice;
       }
 
       if (onStart) utterance.onstart = onStart;
@@ -139,6 +187,23 @@ class AudioSynthesizer {
       console.error('Speech synthesis failed', e);
     }
   }
+
+  // Speak letter using standard Grade 1 Vietnamese phonic reading (Chữ & Âm)
+  speakLetter(letter: { letter: string; uppercase: string; pronunciation: string }, onStart?: () => void, onEnd?: () => void) {
+    const letterNames: Record<string, string> = {
+      'A': 'A', 'Ă': 'Á', 'Â': 'Ớ', 'B': 'Bê', 'C': 'Xê', 'D': 'Dê', 'Đ': 'Đê',
+      'E': 'E', 'Ê': 'Ê', 'G': 'Giê', 'H': 'Hát', 'I': 'I', 'K': 'Ca', 'L': 'En-lờ',
+      'M': 'Em-mờ', 'N': 'En-nờ', 'O': 'O', 'Ô': 'Ô', 'Ơ': 'Ơ', 'P': 'Bê-phở',
+      'Q': 'Quy', 'R': 'E-rờ', 'S': 'Ét-sờ', 'T': 'Tê', 'U': 'U', 'Ư': 'Ư',
+      'V': 'Vê', 'X': 'Ích-xờ', 'Y': 'Y dài'
+    };
+
+    const name = letterNames[letter.letter] || letter.uppercase;
+    // Format: "Chữ Bê. Phát âm là Bờ."
+    const textToSpeak = `Chữ ${name}. Phát âm là ${letter.pronunciation}.`;
+    this.speakVietnamese(textToSpeak, onStart, onEnd);
+  }
 }
 
 export const sound = new AudioSynthesizer();
+
